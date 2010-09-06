@@ -6,3 +6,6 @@
 */obj/Debug/*
 */bin/Release/*
 */bin/Debug/*
+
+# Style Cop
+*/StyleCop.Cache
