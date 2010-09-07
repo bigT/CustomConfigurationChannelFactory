@@ -21,8 +21,7 @@
 //  THE SOFTWARE.
 //
 // </copyright>
-
-namespace External.SystemMode.Configuration
+namespace External.ServiceModel.Configuration
 {
     using System;
     using System.Collections.Generic;

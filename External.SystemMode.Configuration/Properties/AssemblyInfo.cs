@@ -29,12 +29,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("External.SystemMode.Configuration")]
+[assembly: AssemblyTitle("External.ServiceModel.Configuration")]
 [assembly: AssemblyDescription("An implementation of a 4.0 ConfigurationChannelFactory equivalent for WCF 3.0 - 3.5")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("External.SystemMode.Configuration")]
-[assembly: AssemblyCopyright("Copyright © 2010")]
+[assembly: AssemblyProduct("External.ServiceModel.Configuration")]
+[assembly: AssemblyCopyright("Copyright © 2010 Taras V. Alenin")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
