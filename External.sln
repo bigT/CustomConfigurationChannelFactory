@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystemMode.Configuration", "External.SystemMode.Configuration\SystemMode.Configuration.csproj", "{40F7D6D2-C9EB-402C-B497-33756A0E6C23}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceModel.Configuration", "External.SystemMode.Configuration\ServiceModel.Configuration.csproj", "{40F7D6D2-C9EB-402C-B497-33756A0E6C23}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

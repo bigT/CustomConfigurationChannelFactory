@@ -8,8 +8,8 @@
     <ProjectGuid>{40F7D6D2-C9EB-402C-B497-33756A0E6C23}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>External.SystemMode.Configuration</RootNamespace>
-    <AssemblyName>External.SystemMode.Configuration</AssemblyName>
+    <RootNamespace>External.ServiceModel.Configuration</RootNamespace>
+    <AssemblyName>External.ServiceModel.Configuration</AssemblyName>
     <TargetFrameworkVersion>v3.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
