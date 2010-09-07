@@ -116,7 +116,7 @@ namespace External.SystemMode.Configuration
             private static bool IsAssemblySigned(Assembly assembly)
             {
                 byte[] publicKeyToken = assembly.GetName().GetPublicKeyToken();
-                return (publicKeyToken != null) && (publicKeyToken.Length > 0); 
+                return (publicKeyToken != null) && (publicKeyToken.Length > 0);
             }
 
             /// <summary>
@@ -201,12 +201,19 @@ namespace External.SystemMode.Configuration
                 {
                     if (isWildcard)
                     {
-                        // TODO : Fix exception message 
-                        throw new InvalidOperationException(string.Format("SFxConfigContractNotFound", serviceEndpoint.Contract.ConfigurationName));
+                        throw new InvalidOperationException(string.Format(
+                             "Could not find default endpoint element that references contract '{0}' in the ServiceModel " +
+                             "client configuration section. This might be because no configuration file was found for your " +
+                             "application, or because no endpoint element matching this contract could be found in the client element.",
+                             serviceEndpoint.Contract.ConfigurationName));
                     }
 
-                    // TODO : Fix exception message 
-                    throw new InvalidOperationException(string.Format("SFxConfigChannelConfigurationNotFound", configurationName, serviceEndpoint.Contract.ConfigurationName));
+                    throw new InvalidOperationException(string.Format(
+                            "Could not find endpoint element with name '{0}' and contract '{1}' in the ServiceModel " +
+                            "client configuration section. This might be because no configuration file was found for " +
+                            "your application, or because no endpoint element matching this name could be found in the client element.",
+                            configurationName,
+                            serviceEndpoint.Contract.ConfigurationName));
                 }
 
                 if ((serviceEndpoint.Binding == null) && !string.IsNullOrEmpty(provider.Binding))
@@ -351,12 +358,10 @@ namespace External.SystemMode.Configuration
                     {
                         if (isWildcard)
                         {
-                            // TODO : Fix exception message
-                            new InvalidOperationException(string.Format("SFxConfigLoaderMultipleEndpointMatchesWildcard1", contractName));
+                            new InvalidOperationException(string.Format("An endpoint configuration section for contract '{0}' could not be loaded because more than one endpoint configuration for that contract was found. Please indicate the preferred endpoint configuration section by name.", contractName));
                         }
 
-                        // TODO : Fix exception message
-                        new InvalidOperationException(string.Format("SFxConfigLoaderMultipleEndpointMatchesSpecified2", contractName, configurationName));
+                        new InvalidOperationException(string.Format("The endpoint configuration section for contract '{0}' with name '{1}' could not be loaded because more than one endpoint configuration with the same name and contract were found. Please check your config and try again.", contractName, configurationName));
                     }
 
                     cnannelEndPoint = element;
@@ -375,26 +380,26 @@ namespace External.SystemMode.Configuration
             {
                 if (string.IsNullOrEmpty(bindingSectionName))
                 {
-                    // TODO: Fix the message
-                    new ConfigurationErrorsException("ConfigBindingTypeCannotBeNullOrEmpty");
+                    new ConfigurationErrorsException(
+                        "The binding specified cannot be null or an empty string.  Please specify a valid binding.  " +
+                        "Valid binding values can be found in the system.serviceModel/extensions/bindingExtensions collection.");
                 }
 
-                BindingCollectionElement element = this.ConfiguraionContext.Bindings[bindingSectionName];
-                Binding binding = (Binding)element.GetType().InvokeMember(
+                BindingCollectionElement bindingCollectionElement = this.ConfiguraionContext.Bindings[bindingSectionName];
+                Binding binding = (Binding)bindingCollectionElement.GetType().InvokeMember(
                      "GetDefault",
                      BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance,
                      null,
-                     element,
+                     bindingCollectionElement,
                      null,
                      CultureInfo.InvariantCulture);
 
                 if (!string.IsNullOrEmpty(configurationName))
                 {
                     bool flag = false;
-                    foreach (object obj2 in element.ConfiguredBindings)
+                    foreach (IBindingConfigurationElement bindingConfigElement in bindingCollectionElement.ConfiguredBindings)
                     {
-                        IBindingConfigurationElement element2 = obj2 as IBindingConfigurationElement;
-                        if ((element2 != null) && element2.Name.Equals(configurationName, StringComparison.Ordinal))
+                        if ((bindingConfigElement != null) && bindingConfigElement.Name.Equals(configurationName, StringComparison.Ordinal))
                         {
                             if (resolvedBindings == null)
                             {
@@ -404,7 +409,7 @@ namespace External.SystemMode.Configuration
                             string item = bindingSectionName + "/" + configurationName;
                             if (resolvedBindings.Contains(item))
                             {
-                                ConfigurationElement element3 = (ConfigurationElement)obj2;
+                                ConfigurationElement element3 = (ConfigurationElement)bindingConfigElement;
                                 StringBuilder builder = new StringBuilder();
                                 foreach (string str2 in resolvedBindings)
                                 {
@@ -414,8 +419,11 @@ namespace External.SystemMode.Configuration
                                 builder = builder.Append(item);
                                 resolvedBindings = null;
 
-                                // TODO: Fix the exception message
-                                throw new ConfigurationErrorsException(string.Format("ConfigBindingReferenceCycleDetected", builder.ToString(), element3.ElementInformation.Source, element3.ElementInformation.LineNumber));
+                                throw new ConfigurationErrorsException(string.Format(
+                                    "A binding reference cycle was detected in your configuration. The following reference cycle must be removed: {0}.",
+                                    builder.ToString(),
+                                    element3.ElementInformation.Source,
+                                    element3.ElementInformation.LineNumber));
                             }
 
                             try
@@ -554,7 +562,7 @@ namespace External.SystemMode.Configuration
             /// <summary>
             /// Retrieves configured endpoint behaviours.
             /// </summary>
-            /// <param name="behaviorName"></param>
+            /// <param name="behaviorName">The name property in an behavior configuration element.</param>
             /// <param name="context">Configuration context.</param>
             /// <returns>Returns configured endpoint behaviour or null if non found.</returns>
             private EndpointBehaviorElement LookupEndpointBehaviors(string behaviorName, ContextInformation context)
