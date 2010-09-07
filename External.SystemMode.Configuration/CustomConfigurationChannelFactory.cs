@@ -29,6 +29,7 @@ namespace External.SystemMode.Configuration
     using System.Configuration;
     using System.Globalization;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
     using System.Security;
     using System.Security.Cryptography.X509Certificates;
     using System.Security.Permissions;
@@ -37,6 +38,7 @@ namespace External.SystemMode.Configuration
     using System.ServiceModel.Configuration;
     using System.ServiceModel.Description;
     using System.Text;
+    using System.Web.Configuration;
 
     /// <summary>
     /// Provides the generic functionality to create a channel based on specific configuration for a specific type.
@@ -290,6 +292,43 @@ namespace External.SystemMode.Configuration
             }
 
             /// <summary>
+            /// Checks whether the configuration is above web application.
+            /// </summary>
+            /// <param name="contextInformation">Configuration context.</param>
+            /// <returns>True if context is above application, false otherwise.</returns>
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            private static bool IsWebConfigAboveApplication(ContextInformation contextInformation)
+            {
+                WebContext hostingContext = contextInformation.HostingContext as WebContext;
+                return (hostingContext != null) && (hostingContext.ApplicationLevel == WebApplicationLevel.AboveApplication);
+            }
+
+            /// <summary>
+            /// Checks whether the configuration is above application.
+            /// </summary>
+            /// <param name="contextInformation">Configuration context.</param>
+            /// <returns>True if context is above application, false otherwise.</returns>
+            private static bool IsConfigAboveApplication(ContextInformation contextInformation)
+            {
+                if (contextInformation == null)
+                {
+                    return true;
+                }
+
+                if (contextInformation.IsMachineLevel)
+                {
+                    return true;
+                }
+
+                if (contextInformation.HostingContext is ExeContext)
+                {
+                    return false;
+                }
+
+                return IsWebConfigAboveApplication(contextInformation);
+            }
+
+            /// <summary>
             /// Retrieves channel endpoint configuration.
             /// </summary>
             /// <param name="configurationName">The name property in an endpoint configuration element.</param>
@@ -381,9 +420,18 @@ namespace External.SystemMode.Configuration
 
                             try
                             {
-                                // TODO: Implement this (see reflector)-> CheckAccess(obj2 as IConfigurationContextProviderInternal);
+                                ContextInformation context = (ContextInformation)bindingConfigElement.GetType().InvokeMember(
+                                    "System.ServiceModel.Configuration.IConfigurationContextProviderInternal.GetOriginalEvaluationContext",
+                                     BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance,
+                                     null,
+                                     bindingConfigElement,
+                                     null,
+                                     CultureInfo.InvariantCulture);
+
+                                this.CheckAccess(context);
+
                                 resolvedBindings.Add(item);
-                                element2.ApplyConfiguration(binding);
+                                bindingConfigElement.ApplyConfiguration(binding);
                                 resolvedBindings.Remove(item);
                             }
                             catch
@@ -412,6 +460,18 @@ namespace External.SystemMode.Configuration
                 }
 
                 return binding;
+            }
+
+            /// <summary>
+            /// Checks configuration permissions when accessing configuration above application.
+            /// </summary>
+            /// <param name="contextInformation">Configuration context information.</param>
+            private void CheckAccess(ContextInformation contextInformation)
+            {
+                if (IsConfigAboveApplication(contextInformation))
+                {
+                    ConfigurationPermission.Demand();
+                }
             }
 
             /// <summary>
@@ -532,8 +592,15 @@ namespace External.SystemMode.Configuration
 
                 if (element != null)
                 {
-                    // TODO: Implement the following
-                    // CheckAccess(element);
+                    ContextInformation originakContext = (ContextInformation)element.GetType().InvokeMember(
+                        "System.ServiceModel.Configuration.IConfigurationContextProviderInternal.GetOriginalEvaluationContext",
+                        BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance,
+                        null,
+                        element,
+                        null,
+                        CultureInfo.InvariantCulture);
+
+                    this.CheckAccess(originakContext);
                 }
 
                 return element;
