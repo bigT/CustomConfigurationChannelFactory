@@ -526,6 +526,7 @@ namespace External.ServiceModel.Configuration
 
                 if (properties["certificateReference"].ValueOrigin != PropertyValueOrigin.Default)
                 {
+                    // TODO: Implement support for certificateReference.
                     throw new NotImplementedException("Support for property 'certificateReference' is not implemented.");
 
                     ////X509CertificateStore store = new X509CertificateStore(element.CertificateReference.StoreName, element.CertificateReference.StoreLocation);
