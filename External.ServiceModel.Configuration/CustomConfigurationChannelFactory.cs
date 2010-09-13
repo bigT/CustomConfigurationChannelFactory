@@ -76,69 +76,12 @@ namespace External.ServiceModel.Configuration.Service
             loader.LoadChannelBehaviors(this.Endpoint, endpointConfigurationName);
         }
 
-        #region Private Classes
-
-        /// <summary>
-        /// Partial trust evaluation helpers.
-        /// </summary>
-        private static class PartialTrustHelpers
-        {
-            /// <summary>
-            /// AllowPartiallyTrustedCallersAttribute (APTCA) 
-            /// </summary>
-            [SecurityCritical]
-            private static Type aptca;
-
-            /// <summary>
-            /// Determines whether specified type allows partial trust callers.
-            /// </summary>
-            /// <param name="type">A type to be tested.</param>
-            /// <returns>True if partially trusted caller are allowed, false otherwise.</returns>
-            [SecurityCritical]
-            internal static bool IsTypeAptca(Type type)
-            {
-                Assembly assembly = type.Assembly;
-                if (!IsAssemblyAptca(assembly))
-                {
-                    return !IsAssemblySigned(assembly);
-                }
-
-                return true;
-            }
-
-            /// <summary>
-            /// Determines whether an assembly is signed.
-            /// </summary>
-            /// <param name="assembly">An assembly to be tested</param>
-            /// <returns>True is assembly is signed, false otherwise.</returns>
-            [SecurityCritical, FileIOPermission(SecurityAction.Assert, Unrestricted = true)]
-            private static bool IsAssemblySigned(Assembly assembly)
-            {
-                byte[] publicKeyToken = assembly.GetName().GetPublicKeyToken();
-                return (publicKeyToken != null) && (publicKeyToken.Length > 0);
-            }
-
-            /// <summary>
-            /// Determines whether an assembly is marked as AllowPartiallyTrustedCallersAttribute (APTCA).
-            /// </summary>
-            /// <param name="assembly">An assembly to be tested.</param>
-            /// <returns>True is assembly is marked as AllowPartiallyTrustedCallersAttribute (APTCA), false otherwise.</returns>
-            [SecurityCritical]
-            private static bool IsAssemblyAptca(Assembly assembly)
-            {
-                if (aptca == null)
-                {
-                    aptca = typeof(AllowPartiallyTrustedCallersAttribute);
-                }
-
-                return assembly.GetCustomAttributes(aptca, false).Length > 0;
-            }
-        }
+        #region Classes
 
         /// <summary>
         /// Configuration loader helpers.
         /// </summary>
-        private class ConfigurationLoader
+        public class ConfigurationLoader
         {
             /// <summary>
             /// Used to check for secular configuration references.
@@ -693,6 +636,63 @@ namespace External.ServiceModel.Configuration.Service
             }
 
             #endregion
+        }
+
+        /// <summary>
+        /// Partial trust evaluation helpers.
+        /// </summary>
+        private static class PartialTrustHelpers
+        {
+            /// <summary>
+            /// AllowPartiallyTrustedCallersAttribute (APTCA) type.
+            /// </summary>
+            [SecurityCritical]
+            private static Type aptca;
+
+            /// <summary>
+            /// Determines whether specified type allows partial trust callers.
+            /// </summary>
+            /// <param name="type">A type to be tested.</param>
+            /// <returns>True if partially trusted caller are allowed, false otherwise.</returns>
+            [SecurityCritical]
+            internal static bool IsTypeAptca(Type type)
+            {
+                Assembly assembly = type.Assembly;
+                if (!IsAssemblyAptca(assembly))
+                {
+                    return !IsAssemblySigned(assembly);
+                }
+
+                return true;
+            }
+
+            /// <summary>
+            /// Determines whether an assembly is signed.
+            /// </summary>
+            /// <param name="assembly">An assembly to be tested</param>
+            /// <returns>True is assembly is signed, false otherwise.</returns>
+            [SecurityCritical, FileIOPermission(SecurityAction.Assert, Unrestricted = true)]
+            private static bool IsAssemblySigned(Assembly assembly)
+            {
+                byte[] publicKeyToken = assembly.GetName().GetPublicKeyToken();
+                return (publicKeyToken != null) && (publicKeyToken.Length > 0);
+            }
+
+            /// <summary>
+            /// Determines whether an assembly is marked as AllowPartiallyTrustedCallersAttribute (APTCA).
+            /// </summary>
+            /// <param name="assembly">An assembly to be tested.</param>
+            /// <returns>True is assembly is marked as AllowPartiallyTrustedCallersAttribute (APTCA), false otherwise.</returns>
+            [SecurityCritical]
+            private static bool IsAssemblyAptca(Assembly assembly)
+            {
+                if (aptca == null)
+                {
+                    aptca = typeof(AllowPartiallyTrustedCallersAttribute);
+                }
+
+                return assembly.GetCustomAttributes(aptca, false).Length > 0;
+            }
         }
 
         #endregion
