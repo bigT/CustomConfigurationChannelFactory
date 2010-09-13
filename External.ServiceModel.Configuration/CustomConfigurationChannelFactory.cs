@@ -328,7 +328,7 @@ namespace External.ServiceModel.Configuration
             {
                 if (string.IsNullOrEmpty(bindingSectionName))
                 {
-                    new ConfigurationErrorsException(
+                    throw new ConfigurationErrorsException(
                         "The binding specified cannot be null or an empty string.  Please specify a valid binding.  " +
                         "Valid binding values can be found in the system.serviceModel/extensions/bindingExtensions collection.");
                 }
