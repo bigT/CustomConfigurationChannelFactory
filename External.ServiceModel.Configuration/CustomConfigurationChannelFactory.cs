@@ -300,10 +300,16 @@ namespace External.ServiceModel.Configuration
                     {
                         if (isWildcard)
                         {
-                            new InvalidOperationException(string.Format("An endpoint configuration section for contract '{0}' could not be loaded because more than one endpoint configuration for that contract was found. Please indicate the preferred endpoint configuration section by name.", contractName));
+                            throw new InvalidOperationException(string.Format(
+                                "An endpoint configuration section for contract '{0}' could not be loaded because more than one endpoint configuration " + 
+                                "for that contract was found. Please indicate the preferred endpoint configuration section by name.", 
+                                contractName));
                         }
 
-                        new InvalidOperationException(string.Format("The endpoint configuration section for contract '{0}' with name '{1}' could not be loaded because more than one endpoint configuration with the same name and contract were found. Please check your config and try again.", contractName, configurationName));
+                        throw new InvalidOperationException(string.Format("The endpoint configuration section for contract '{0}' with name '{1}' could not " + 
+                            "be loaded because more than one endpoint configuration with the same name and contract were found. Please check your config and try again.", 
+                            contractName, 
+                            configurationName));
                     }
 
                     cnannelEndPoint = element;
@@ -459,7 +465,7 @@ namespace External.ServiceModel.Configuration
                     supportingCertificates.Import(Convert.FromBase64String(element.Certificate.EncodedValue));
                     if (supportingCertificates.Count == 0)
                     {
-                        throw new InvalidOperationException("UnableToLoadCertificateIdentity");
+                        throw new InvalidOperationException("Cannot load the X.509 certificate identity specified in the configuration.");
                     }
 
                     X509Certificate2 primaryCertificate = supportingCertificates[0];
