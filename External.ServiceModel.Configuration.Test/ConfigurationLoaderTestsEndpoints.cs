@@ -1,4 +1,4 @@
-﻿// <copyright file="ConfigurationLoaderTest.cs" company="Taras V. Alenin"> 
+﻿// <copyright file="ConfigurationLoaderTestsEndpoints.cs" company="Taras V. Alenin"> 
 //
 //  Copyright (c) 2010 Taras V. Alenin
 //
@@ -60,7 +60,6 @@ namespace External.ServiceModel.Configuration.Test
             Assert.Throws(typeof(InvalidOperationException), delegate { this.LoadServiceEndPoint("Test", context); });
             Assert.Throws(typeof(InvalidOperationException), delegate { this.LoadServiceEndPoint("*", context); });
         }
-
 
         /// <summary>
         /// Test matching endpoint by wildcard.
