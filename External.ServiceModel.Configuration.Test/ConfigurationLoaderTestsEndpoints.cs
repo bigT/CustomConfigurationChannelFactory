@@ -138,13 +138,14 @@ namespace External.ServiceModel.Configuration.Test
         {
             // Construct configuration settings
             ChannelEndpointElement endpoint1 = new ChannelEndpointElement(null, typeof(ITestService).FullName) { Name = "Test1" };
-            ChannelEndpointElement endpoint2 = new ChannelEndpointElement(null, typeof(ITestService).FullName) { Name = "Test2" };
+            ChannelEndpointElement endpoint2 = new ChannelEndpointElement(null, typeof(ITestService).FullName + "0000") { Name = "Test2" };
             ServiceModelSectionGroup context = this.CreateServiceModelSectionGroup();
             context.Client.Endpoints.Add(endpoint1);
             context.Client.Endpoints.Add(endpoint2);
 
             Assert.DoesNotThrow(delegate { this.LoadServiceEndPoint("Test1", context); });
             Assert.Throws(typeof(InvalidOperationException), delegate { this.LoadServiceEndPoint("TestXYZ", context); });
+            Assert.Throws(typeof(InvalidOperationException), delegate { this.LoadServiceEndPoint("Test2", context); });
         }
 
         #region Private
