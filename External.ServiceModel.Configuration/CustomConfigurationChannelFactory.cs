@@ -26,6 +26,7 @@ namespace External.ServiceModel.Configuration
     using System;
     using System.Collections.Generic;
     using System.Configuration;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Reflection;
     using System.Runtime.CompilerServices;
@@ -106,6 +107,13 @@ namespace External.ServiceModel.Configuration
             }
 
             /// <summary>
+            /// Represents a method that takes no parameters and returns a value.
+            /// </summary>
+            /// <typeparam name="TResult">Type returned by the delegate.</typeparam>
+            /// <returns>An instance of TResult type.</returns>
+            private delegate TResult Func<out TResult>();
+
+            /// <summary>
             /// Gets a system configuration permissions.
             /// </summary>
             private static ConfigurationPermission ConfigurationPermission
@@ -168,15 +176,14 @@ namespace External.ServiceModel.Configuration
                     serviceEndpoint.Address = new EndpointAddress(provider.Address, this.LoadIdentity(provider.Identity), provider.Headers.Headers);
                 }
 
-                ContextInformation context = this.UnwrapReflectionExceptions(() =>
+                ContextInformation context = UnwrapReflectionExceptions(() =>
                     (ContextInformation)provider.GetType().InvokeMember(
                          "System.ServiceModel.Configuration.IConfigurationContextProviderInternal.GetEvaluationContext",
                          BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance,
                          null,
                          provider,
                          null,
-                         CultureInfo.InvariantCulture)
-                         );
+                         CultureInfo.InvariantCulture));
 
                 CommonBehaviorsSection commonBehaviors = this.LookupCommonBehaviors(context);
                 if ((commonBehaviors != null) && (commonBehaviors.EndpointBehaviors != null))
@@ -194,14 +201,14 @@ namespace External.ServiceModel.Configuration
             }
 
             #region Private
+
             /// <summary>
-            /// Represents a method that takes no parameters and returns a value.
+            /// This method unwraps and throws inner exception is it catches <see cref="TargetInvocationException"/>
             /// </summary>
             /// <typeparam name="TResult">Type returned by the delegate.</typeparam>
-            /// <returns>An instance of TResult type.</returns>
-            private delegate TResult Func<out TResult>();
-
-            private TResult UnwrapReflectionExceptions<TResult>(Func<TResult> function)
+            /// <param name="function">Code that invokes reflection.</param>
+            /// <returns>An object of TRsesult type</returns>
+            private static TResult UnwrapReflectionExceptions<TResult>(Func<TResult> function)
             {
                 try
                 {
@@ -213,6 +220,7 @@ namespace External.ServiceModel.Configuration
                     {
                         throw ex.InnerException;
                     }
+
                     throw;
                 }
             }
@@ -326,14 +334,16 @@ namespace External.ServiceModel.Configuration
                         if (isWildcard)
                         {
                             throw new InvalidOperationException(string.Format(
-                                "An endpoint configuration section for contract '{0}' could not be loaded because more than one endpoint configuration " + 
-                                "for that contract was found. Please indicate the preferred endpoint configuration section by name.", 
+                                "An endpoint configuration section for contract '{0}' could not be loaded because more than one endpoint configuration " +
+                                "for that contract was found. Please indicate the preferred endpoint configuration section by name.",
                                 contractName));
                         }
 
-                        throw new InvalidOperationException(string.Format("The endpoint configuration section for contract '{0}' with name '{1}' could not " + 
-                            "be loaded because more than one endpoint configuration with the same name and contract were found. Please check your config and try again.", 
-                            contractName, 
+                        throw new InvalidOperationException(
+                            string.Format(
+                            "The endpoint configuration section for contract '{0}' with name '{1}' could not " +
+                            "be loaded because more than one endpoint configuration with the same name and contract were found. Please check your config and try again.",
+                            contractName,
                             configurationName));
                     }
 
@@ -359,7 +369,7 @@ namespace External.ServiceModel.Configuration
                 }
 
                 BindingCollectionElement bindingCollectionElement = this.ConfiguraionContext.Bindings[bindingSectionName];
-                Binding binding = this.UnwrapReflectionExceptions(() => (Binding)bindingCollectionElement.GetType().InvokeMember(
+                Binding binding = UnwrapReflectionExceptions(() => (Binding)bindingCollectionElement.GetType().InvokeMember(
                      "GetDefault",
                      BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance,
                      null,
@@ -401,7 +411,7 @@ namespace External.ServiceModel.Configuration
 
                             try
                             {
-                                ContextInformation context = this.UnwrapReflectionExceptions(() =>
+                                ContextInformation context = UnwrapReflectionExceptions(() =>
                                     (ContextInformation)bindingConfigElement.GetType().InvokeMember(
                                     "System.ServiceModel.Configuration.IConfigurationContextProviderInternal.GetOriginalEvaluationContext",
                                      BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance,
@@ -548,7 +558,7 @@ namespace External.ServiceModel.Configuration
                     BehaviorsSection section = null;
                     if (context == null)
                     {
-                        section = this.UnwrapReflectionExceptions(() => (BehaviorsSection)typeof(BehaviorsSection).InvokeMember(
+                        section = UnwrapReflectionExceptions(() => (BehaviorsSection) typeof(BehaviorsSection).InvokeMember(
                              "UnsafeGetSection",
                              BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Static,
                              null,
@@ -558,12 +568,17 @@ namespace External.ServiceModel.Configuration
                     }
                     else
                     {
-                        section = this.UnwrapReflectionExceptions(() => (BehaviorsSection)typeof(BehaviorsSection).InvokeMember(
+                        object[] args = new object[]
+                        {
+                            context
+                        };
+
+                        section = UnwrapReflectionExceptions(() => (BehaviorsSection) typeof(BehaviorsSection).InvokeMember(
                              "UnsafeGetAssociatedSection",
                              BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Static,
                              null,
                              null,
-                             new object[] { context },
+                             args,
                              CultureInfo.InvariantCulture));
                     }
 
@@ -575,7 +590,7 @@ namespace External.ServiceModel.Configuration
 
                 if (element != null)
                 {
-                    ContextInformation originakContext = this.UnwrapReflectionExceptions(() => (ContextInformation)element.GetType().InvokeMember(
+                    ContextInformation originakContext = UnwrapReflectionExceptions(() => (ContextInformation)element.GetType().InvokeMember(
                         "System.ServiceModel.Configuration.IConfigurationContextProviderInternal.GetOriginalEvaluationContext",
                         BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance,
                         null,
@@ -598,16 +613,21 @@ namespace External.ServiceModel.Configuration
             {
                 if (context != null)
                 {
-                    return this.UnwrapReflectionExceptions(() => (CommonBehaviorsSection)typeof(CommonBehaviorsSection).InvokeMember(
+                    object[] args = new object[]
+                    {
+                        context
+                    };
+
+                    return UnwrapReflectionExceptions(() => (CommonBehaviorsSection) typeof(CommonBehaviorsSection).InvokeMember(
                         "UnsafeGetAssociatedSection",
                         BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Static,
                         null,
                         null,
-                        new object[] { context },
+                        args,
                         CultureInfo.InvariantCulture));
                 }
 
-                return this.UnwrapReflectionExceptions(() => (CommonBehaviorsSection)typeof(CommonBehaviorsSection).InvokeMember(
+                return UnwrapReflectionExceptions(() => (CommonBehaviorsSection) typeof(CommonBehaviorsSection).InvokeMember(
                     "UnsafeGetSection",
                     BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Static,
                     null,
@@ -619,7 +639,7 @@ namespace External.ServiceModel.Configuration
             /// <summary>
             /// Loads configured endpoint behaviour.
             /// </summary>
-            /// <typeparam name="T"></typeparam>
+            /// <typeparam name="T">The item types contained in the collection that also serve as the keys for the collection.</typeparam>
             /// <param name="behaviorElement">Configured behaviours.</param>
             /// <param name="behaviors">Loaded behaviours.</param>
             /// <param name="commonBehaviors">True if common behaviours are being loaded, false otherwise.</param>
@@ -630,7 +650,7 @@ namespace External.ServiceModel.Configuration
                 for (int i = 0; i < behaviorElement.Count; i++)
                 {
                     BehaviorExtensionElement behaviorExtension = behaviorElement[i];
-                    object behavior = this.UnwrapReflectionExceptions(() => behaviorExtension.GetType().InvokeMember(
+                    object behavior = UnwrapReflectionExceptions(() => behaviorExtension.GetType().InvokeMember(
                          "CreateBehavior",
                          BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance,
                          null,
