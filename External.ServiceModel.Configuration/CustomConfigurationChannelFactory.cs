@@ -168,13 +168,15 @@ namespace External.ServiceModel.Configuration
                     serviceEndpoint.Address = new EndpointAddress(provider.Address, this.LoadIdentity(provider.Identity), provider.Headers.Headers);
                 }
 
-                ContextInformation context = (ContextInformation)provider.GetType().InvokeMember(
-                     "System.ServiceModel.Configuration.IConfigurationContextProviderInternal.GetEvaluationContext",
-                     BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance,
-                     null,
-                     provider,
-                     null,
-                     CultureInfo.InvariantCulture);
+                ContextInformation context = this.UnwrapReflectionExceptions(() =>
+                    (ContextInformation)provider.GetType().InvokeMember(
+                         "System.ServiceModel.Configuration.IConfigurationContextProviderInternal.GetEvaluationContext",
+                         BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance,
+                         null,
+                         provider,
+                         null,
+                         CultureInfo.InvariantCulture)
+                         );
 
                 CommonBehaviorsSection commonBehaviors = this.LookupCommonBehaviors(context);
                 if ((commonBehaviors != null) && (commonBehaviors.EndpointBehaviors != null))
@@ -192,6 +194,29 @@ namespace External.ServiceModel.Configuration
             }
 
             #region Private
+            /// <summary>
+            /// Represents a method that takes no parameters and returns a value.
+            /// </summary>
+            /// <typeparam name="TResult">Type returned by the delegate.</typeparam>
+            /// <returns>An instance of TResult type.</returns>
+            private delegate TResult Func<out TResult>();
+
+            private TResult UnwrapReflectionExceptions<TResult>(Func<TResult> function)
+            {
+                try
+                {
+                    return function();
+                }
+                catch (TargetInvocationException ex)
+                {
+                    if (ex.InnerException != null)
+                    {
+                        throw ex.InnerException;
+                    }
+                    throw;
+                }
+            }
+
             /// <summary>
             /// Determines whether to skip initialization of common behaviours.
             /// </summary>
@@ -334,13 +359,13 @@ namespace External.ServiceModel.Configuration
                 }
 
                 BindingCollectionElement bindingCollectionElement = this.ConfiguraionContext.Bindings[bindingSectionName];
-                Binding binding = (Binding)bindingCollectionElement.GetType().InvokeMember(
+                Binding binding = this.UnwrapReflectionExceptions(() => (Binding)bindingCollectionElement.GetType().InvokeMember(
                      "GetDefault",
                      BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance,
                      null,
                      bindingCollectionElement,
                      null,
-                     CultureInfo.InvariantCulture);
+                     CultureInfo.InvariantCulture));
 
                 if (!string.IsNullOrEmpty(configurationName))
                 {
@@ -376,13 +401,14 @@ namespace External.ServiceModel.Configuration
 
                             try
                             {
-                                ContextInformation context = (ContextInformation)bindingConfigElement.GetType().InvokeMember(
+                                ContextInformation context = this.UnwrapReflectionExceptions(() =>
+                                    (ContextInformation)bindingConfigElement.GetType().InvokeMember(
                                     "System.ServiceModel.Configuration.IConfigurationContextProviderInternal.GetOriginalEvaluationContext",
                                      BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance,
                                      null,
                                      bindingConfigElement,
                                      null,
-                                     CultureInfo.InvariantCulture);
+                                     CultureInfo.InvariantCulture));
 
                                 this.CheckAccess(context);
 
@@ -522,23 +548,23 @@ namespace External.ServiceModel.Configuration
                     BehaviorsSection section = null;
                     if (context == null)
                     {
-                        section = (BehaviorsSection)typeof(BehaviorsSection).InvokeMember(
+                        section = this.UnwrapReflectionExceptions(() => (BehaviorsSection)typeof(BehaviorsSection).InvokeMember(
                              "UnsafeGetSection",
                              BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Static,
                              null,
                              null,
                              null,
-                             CultureInfo.InvariantCulture);
+                             CultureInfo.InvariantCulture));
                     }
                     else
                     {
-                        section = (BehaviorsSection)typeof(BehaviorsSection).InvokeMember(
+                        section = this.UnwrapReflectionExceptions(() => (BehaviorsSection)typeof(BehaviorsSection).InvokeMember(
                              "UnsafeGetAssociatedSection",
                              BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Static,
                              null,
                              null,
                              new object[] { context },
-                             CultureInfo.InvariantCulture);
+                             CultureInfo.InvariantCulture));
                     }
 
                     if (section.EndpointBehaviors.ContainsKey(behaviorName))
@@ -549,13 +575,13 @@ namespace External.ServiceModel.Configuration
 
                 if (element != null)
                 {
-                    ContextInformation originakContext = (ContextInformation)element.GetType().InvokeMember(
+                    ContextInformation originakContext = this.UnwrapReflectionExceptions(() => (ContextInformation)element.GetType().InvokeMember(
                         "System.ServiceModel.Configuration.IConfigurationContextProviderInternal.GetOriginalEvaluationContext",
                         BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance,
                         null,
                         element,
                         null,
-                        CultureInfo.InvariantCulture);
+                        CultureInfo.InvariantCulture));
 
                     this.CheckAccess(originakContext);
                 }
@@ -572,22 +598,22 @@ namespace External.ServiceModel.Configuration
             {
                 if (context != null)
                 {
-                    return (CommonBehaviorsSection)typeof(CommonBehaviorsSection).InvokeMember(
+                    return this.UnwrapReflectionExceptions(() => (CommonBehaviorsSection)typeof(CommonBehaviorsSection).InvokeMember(
                         "UnsafeGetAssociatedSection",
                         BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Static,
                         null,
                         null,
                         new object[] { context },
-                        CultureInfo.InvariantCulture);
+                        CultureInfo.InvariantCulture));
                 }
 
-                return (CommonBehaviorsSection)typeof(CommonBehaviorsSection).InvokeMember(
+                return this.UnwrapReflectionExceptions(() => (CommonBehaviorsSection)typeof(CommonBehaviorsSection).InvokeMember(
                     "UnsafeGetSection",
                     BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Static,
                     null,
                     null,
                     null,
-                    CultureInfo.InvariantCulture);
+                    CultureInfo.InvariantCulture));
             }
 
             /// <summary>
@@ -604,13 +630,13 @@ namespace External.ServiceModel.Configuration
                 for (int i = 0; i < behaviorElement.Count; i++)
                 {
                     BehaviorExtensionElement behaviorExtension = behaviorElement[i];
-                    object behavior = behaviorExtension.GetType().InvokeMember(
+                    object behavior = this.UnwrapReflectionExceptions(() => behaviorExtension.GetType().InvokeMember(
                          "CreateBehavior",
                          BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Instance,
                          null,
                          behaviorExtension,
                          null,
-                         CultureInfo.InvariantCulture);
+                         CultureInfo.InvariantCulture));
 
                     if (behavior != null)
                     {
