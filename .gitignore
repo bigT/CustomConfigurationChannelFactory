@@ -9,3 +9,6 @@
 
 # Style Cop
 */StyleCop.Cache
+
+# KDiff3
+*.orig
