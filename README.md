@@ -9,11 +9,11 @@ Example:
 --------
 
 	Configuration configuration = ConfigurationManager.OpenMappedExeConfiguration(
-		new ExeConfigurationFileMap { ExeConfigFilename = @"C:\Temp\CustomClient.config"}, ConfigurationUserLevel.None);
+		new ExeConfigurationFileMap { ExeConfigFilename = @"C:\Temp\CustomClient.config" }, ConfigurationUserLevel.None);
 
-	CustomConfigurationChannelFactory<ICustomService> factory = 
-		new ConfigurationChannelFactory<ICustomService>("ICustomService", configuration, null);
-	
-	ICustomService client = factory.CreateChannel();
-	Foo instance = client.GetFoo();
+	CustomConfigurationChannelFactory<ITestService> factory =
+		new CustomConfigurationChannelFactory<ITestService>("ITestService", configuration, null);
+
+	ITestService client = factory.CreateChannel();
+	string returnValue = client.TesMethod("test");
 	factory.Close();
